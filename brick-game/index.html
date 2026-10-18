@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Brick Game">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#2b2d33">
+<title>Brick Game 9999 in 1</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:none}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#2b2d33}
+body{position:fixed;inset:0;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;display:flex;justify-content:center;align-items:stretch}
+#console{position:relative;display:flex;flex-direction:column;width:100%;max-width:500px;height:100%;max-height:1000px;margin:auto;
+ padding:calc(env(safe-area-inset-top) + 10px) calc(env(safe-area-inset-right) + 14px) calc(env(safe-area-inset-bottom) + 10px) calc(env(safe-area-inset-left) + 14px);
+ background:linear-gradient(160deg,#e7e2d6 0%,#d4cebf 55%,#c3bcab 100%);box-shadow:inset 0 2px 0 rgba(255,255,255,.6),inset 0 -6px 18px rgba(0,0,0,.18)}
+@media (min-width:520px){#console{border-radius:28px 28px 70px 28px;height:calc(100% - 24px);box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 2px 0 rgba(255,255,255,.6),inset 0 -6px 18px rgba(0,0,0,.18)}}
+#brand{display:flex;justify-content:space-between;align-items:baseline;padding:2px 6px 8px;color:#3a3d48;font-weight:800;letter-spacing:.12em;font-size:15px}
+#brand small{font-size:11px;letter-spacing:.2em;color:#b23a3a;font-weight:800}
+#screenWrap{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center}
+#bezel{background:linear-gradient(180deg,#4b4f5c,#383b45);border-radius:14px 14px 40px 14px;padding:12px 12px 10px;box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.7)}
+#lcd{display:block;border-radius:4px;box-shadow:inset 0 0 8px rgba(0,0,0,.4)}
+#bezelLabel{color:#c9ccd6;font-size:10px;letter-spacing:.3em;text-align:center;padding-top:6px;font-weight:700}
+#bezelLabel b{color:#e2574c}
+#smallRow{display:flex;justify-content:center;gap:clamp(18px,7vw,40px);padding:12px 0 4px}
+.sbtn{display:flex;flex-direction:column;align-items:center;gap:5px;color:#3a3d48;font-size:10px;font-weight:800;letter-spacing:.08em}
+.sbtn .cap{width:54px;height:20px;border-radius:12px;background:linear-gradient(180deg,#7c808d,#555966);box-shadow:0 3px 0 #33363f,0 5px 6px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .05s,box-shadow .05s}
+.sbtn.on .cap{transform:translateY(3px);box-shadow:0 0 0 #33363f,0 1px 2px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.2)}
+#controls{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:6px 2px 4px;height:var(--ctl-h,300px)}
+#dpad{position:relative;width:var(--dpad,230px);height:var(--dpad,230px)}
+.btn{position:absolute;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe27a 0%,#f2c230 45%,#d39e12 100%);
+ box-shadow:0 6px 0 #9c7409,0 9px 12px rgba(0,0,0,.4),inset 0 -3px 6px rgba(0,0,0,.15),inset 0 2px 2px rgba(255,255,255,.6);transition:transform .05s,box-shadow .05s;display:flex;align-items:center;justify-content:center}
+.btn.on{transform:translateY(5px);box-shadow:0 1px 0 #9c7409,0 2px 4px rgba(0,0,0,.4),inset 0 -1px 4px rgba(0,0,0,.25),inset 0 2px 2px rgba(255,255,255,.4)}
+.btn svg{width:34%;height:34%;fill:#8a650a;opacity:.85}
+.lbl{position:absolute;color:#3a3d48;font-size:10px;font-weight:800;letter-spacing:.08em;white-space:nowrap;pointer-events:none}
+#dpad .btn{width:38%;height:38%}
+#b-up{left:31%;top:0}#b-down{left:31%;bottom:4%}#b-left{left:0;top:29%}#b-right{right:0;top:29%}
+#rotWrap{position:relative;width:var(--rot,140px);height:var(--rot,140px);margin-right:4px;margin-top:-10%}
+#b-rotate{inset:0;background:radial-gradient(circle at 35% 30%,#ff8f80 0%,#e2574c 45%,#b2362c 100%);box-shadow:0 7px 0 #7d241d,0 10px 14px rgba(0,0,0,.4),inset 0 -3px 6px rgba(0,0,0,.15),inset 0 2px 2px rgba(255,255,255,.5)}
+#b-rotate.on{box-shadow:0 1px 0 #7d241d,0 2px 4px rgba(0,0,0,.4),inset 0 -1px 4px rgba(0,0,0,.25)}
+#b-rotate svg{fill:#7d241d}
+#rotLbl{left:0;right:0;text-align:center;bottom:-22px}
+#hint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 2px);text-align:center;font-size:9px;color:#6b6e78;letter-spacing:.05em}
+@media (hover:none){#hint{display:none}}
+</style>
+</head>
+<body>
+<div id="console">
+  <div id="brand"><span>BRICK GAME</span><small>9999 IN 1</small></div>
+  <div id="screenWrap"><div id="bezel"><canvas id="lcd"></canvas><div id="bezelLabel">&#9632; <b>5</b> CLASSIC GAMES &#9632;</div></div></div>
+  <div id="smallRow">
+    <div class="sbtn" data-btn="start" id="b-start"><div class="cap"></div>START/PAUSE</div>
+    <div class="sbtn" data-btn="sound" id="b-sound"><div class="cap"></div>SOUND</div>
+    <div class="sbtn" data-btn="reset" id="b-reset"><div class="cap"></div>RESET</div>
+  </div>
+  <div id="controls">
+    <div id="dpad">
+      <div class="btn" data-btn="up" id="b-up"><svg viewBox="0 0 10 10"><path d="M5 1 9 8H1z"/></svg></div>
+      <div class="btn" data-btn="left" id="b-left"><svg viewBox="0 0 10 10"><path d="M1 5 8 1v8z"/></svg></div>
+      <div class="btn" data-btn="right" id="b-right"><svg viewBox="0 0 10 10"><path d="M9 5 2 1v8z"/></svg></div>
+      <div class="btn" data-btn="down" id="b-down"><svg viewBox="0 0 10 10"><path d="M5 9 9 2H1z"/></svg></div>
+    </div>
+    <div id="rotWrap"><div class="btn" data-btn="rotate" id="b-rotate"><svg viewBox="0 0 10 10"><path d="M5 1.2a3.8 3.8 0 1 0 3.6 2.6l-1.3.5A2.4 2.4 0 1 1 5 2.6V4l2.6-2L5 0z"/></svg></div><div class="lbl" id="rotLbl">ROTATE / FIRE</div></div>
+  </div>
+  <div id="hint">Keys: arrows &middot; Space rotate/fire/start &middot; P pause &middot; S sound &middot; R reset &middot; 1-5 games</div>
+</div>
+<script>
+"use strict";
+(function(){
+// ---------------------------------------------------------------- state
+const W = 10, H = 20;
+const GAME_NAMES = ["SNAKE", "RACE", "TETRIS", "SHOOT", "TANKS"];
+const LS = (function(){ try { const k = "__bg_t"; localStorage.setItem(k, "1"); localStorage.removeItem(k); return localStorage; } catch (e) { return null; } })();
+function lsGet(k, d){ try { const v = LS && LS.getItem(k); return v == null ? d : v; } catch (e) { return d; } }
+function lsSet(k, v){ try { LS && LS.setItem(k, String(v)); } catch (e) {} }
+
+const S = {
+  mode: "menu", sel: 0, score: 0, speed: 0, level: 0, life: 0,
+  sound: lsGet("bg9999.sound", "1") === "1", pause: false, locked: false, crashing: false,
+  board: grid(), preview: grid4(), hi: [0,0,0,0,0]
+};
+for (let i = 0; i < 5; i++) S.hi[i] = parseInt(lsGet("bg9999.hi." + i, "0"), 10) || 0;
+S.sel = Math.min(4, Math.max(0, parseInt(lsGet("bg9999.sel", "0"), 10) || 0));
+S.speed = Math.min(15, parseInt(lsGet("bg9999.speed", "0"), 10) || 0);
+S.level = Math.min(15, parseInt(lsGet("bg9999.level", "0"), 10) || 0);
+let dirty = true;
+
+function grid(){ const g = []; for (let y = 0; y < H; y++) g.push(new Array(W).fill(false)); return g; }
+function grid4(){ const g = []; for (let y = 0; y < 4; y++) g.push(new Array(4).fill(false)); return g; }
+function P(y, x){ return { y: y, x: x }; }
+function cp(p){ return { y: p.y, x: p.x }; }
+function eq(a, b){ return a.y === b.y && a.x === b.x; }
+function has(list, p){ for (let i = 0; i < list.length; i++) if (list[i].y === p.y && list[i].x === p.x) return true; return false; }
+function rnd(n){ return Math.floor(Math.random() * n); }
+// CanvasTranslator.from(...streams)
+function canvasFrom(){ const g = grid(); for (const list of arguments) for (const p of list) if (p.y >= 0 && p.y < H && p.x >= 0 && p.x < W) g[p.y][p.x] = true; return g; }
+// Shape.of(width, ...hex rows) and Shape.of(int[][])
+function shapeHex(width){ const pts = []; for (let r = 1; r < arguments.length; r++) for (let c = 0; c < width; c++) if ((arguments[r] >> (width - 1 - c)) & 1) pts.push(P(r - 1, c)); return pts; }
+function shapeRows(rows){ const pts = []; rows.forEach((row, y) => { for (let x = 0; x < row.length; x++) if (row[x] === "1" || row[x] === 1) pts.push(P(y, x)); }); return pts; }
+function applyShape(shape, at){ return shape.map(p => P(p.y + at.y, p.x + at.x)); }
+
+function draw(g, force){ if (S.crashing && !force) return; S.board = g; dirty = true; }
+function drawPreview(g){ S.preview = g; dirty = true; }
+function setScore(v){ S.score = ((v % 1000000) + 1000000) % 1000000; if (S.mode === "game" && S.score > S.hi[S.sel]) { S.hi[S.sel] = S.score; lsSet("bg9999.hi." + S.sel, S.score); } dirty = true; }
+function incScore(h){ setScore(S.score + h); }
+// NumberPanel(2, 15): wraps to 0 above max; returns new value
+function incSpeed(){ S.speed = S.speed + 1 > 15 ? 0 : S.speed + 1; lsSet("bg9999.speed", S.speed); dirty = true; return S.speed; }
+function incLevel(){ S.level = S.level + 1 > 15 ? 0 : S.level + 1; lsSet("bg9999.level", S.level); dirty = true; return S.level; }
+// Life.repaint() into the 4x4 preview
+function setLife(v){ S.life = Math.max(0, v); if (!(game && game.usesPreview)) { const g = grid4(); for (let h = 0; h < 4; h++) for (let w = 0; w < 4; w++) g[h][w] = (4 - h) + 4 * w <= S.life; drawPreview(g); } dirty = true; }
+
+// ---------------------------------------------------------------- kernel (timer jobs)
+const kernel = {
+  jobs: new Map(),
+  job(name, ms, action, countdown, finalize){
+    const old = this.jobs.get(name); if (old) old.killed = true;
+    const j = { name, ms, action, countdown, finalize, killed: false, next: performance.now() };
+    this.jobs.set(name, j); return j;
+  },
+  kill(j){ j.killed = true; if (this.jobs.get(j.name) === j) this.jobs.delete(j.name); },
+  killAll(){ for (const j of this.jobs.values()) j.killed = true; this.jobs.clear(); },
+  run(j){
+    if (j.countdown !== undefined) { if (--j.countdown < 0) { this.kill(j); j.finalize(j); return; } }
+    j.action(j);
+  },
+  tick(now){
+    if (S.pause) return;
+    for (const j of Array.from(this.jobs.values())) {
+      let n = 0;
+      while (!j.killed && now >= j.next && n < 8) { j.next += j.ms; n++; this.run(j); }
+      if (!j.killed && now - j.next > 250) j.next = now;
+    }
+  },
+  resync(){ const now = performance.now(); for (const j of this.jobs.values()) j.next = now; }
+};
+
+// ---------------------------------------------------------------- sound (WebAudio chiptune)
+let ac = null, master = null, noiseBuf = null;
+function unlockAudio(){
+  try {
+    if (!ac) {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+      ac = new AC(); master = ac.createGain(); master.gain.value = 0.5; master.connect(ac.destination);
+      const b = ac.createBuffer(1, 1, 22050); const s = ac.createBufferSource(); s.buffer = b; s.connect(ac.destination); s.start(0);
+      noiseBuf = ac.createBuffer(1, ac.sampleRate * 0.6, ac.sampleRate);
+      const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    if (ac.state !== "running") ac.resume();
+  } catch (e) {}
+}
+function tone(f, dur, at, type, vol, f2){
+  if (!ac || !S.sound) return;
+  const t = ac.currentTime + (at || 0); const o = ac.createOscillator(); const g = ac.createGain();
+  o.type = type || "square"; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  g.gain.setValueAtTime(vol || 0.12, t); g.gain.setValueAtTime(vol || 0.12, t + dur * 0.7); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+}
+function noise(dur, at, vol){
+  if (!ac || !S.sound || !noiseBuf) return;
+  const t = ac.currentTime + (at || 0); const s = ac.createBufferSource(); const g = ac.createGain(); const f = ac.createBiquadFilter();
+  s.buffer = noiseBuf; f.type = "lowpass"; f.frequency.setValueAtTime(3000, t); f.frequency.exponentialRampToValueAtTime(200, t + dur);
+  g.gain.setValueAtTime(vol || 0.25, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + dur);
+}
+const sfx = {
+  move(){ tone(660, 0.025, 0, "square", 0.06); },
+  rotate(){ tone(990, 0.03, 0, "square", 0.06); },
+  eat(){ tone(784, 0.05); tone(1175, 0.07, 0.05); },
+  clear(){ [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.07, i * 0.06)); },
+  shoot(){ tone(1400, 0.06, 0, "square", 0.07, 500); },
+  hit(){ noise(0.12, 0, 0.2); tone(300, 0.08, 0, "square", 0.08, 120); },
+  crash(){ noise(0.5, 0, 0.3); tone(220, 0.4, 0, "sawtooth", 0.08, 50); },
+  over(){ [784, 659, 523, 392, 330, 262].forEach((f, i) => tone(f, 0.14, 0.15 + i * 0.15, "square", 0.1)); },
+  start(){ [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.06, i * 0.07, "square", 0.08)); },
+  level(){ [784, 988, 1175, 1568].forEach((f, i) => tone(f, 0.08, i * 0.08)); },
+  click(){ tone(1200, 0.02, 0, "square", 0.05); }
+};
+
+// ---------------------------------------------------------------- Menu
+const DIGITS = [
+  ["0110","1001","1001","1001","0110"], ["0010","0110","0010","0010","0111"], ["0111","0001","0111","0100","0111"],
+  ["0111","0001","0111","0001","0111"], ["0101","0101","0111","0001","0001"], ["0111","0100","0111","0001","0111"]
+];
+const ICONS = [
+  ["0000000000","0111110000","0000010010","0011110000","0010000000","0011111100"],
+  ["1000100001","1001110001","0000100000","1001010001","1000000001","0000000000"],
+  ["0000000000","0001000000","0011100000","0000000100","1100011100","1111011111"],
+  ["0110110110","0011001100","0000000000","0000100000","0000000000","0000100000"],
+  ["0100000000","1110000011","1010000110","0000100011","0000000000","0000000000"]
+];
+class Menu {
+  init(){ this.repaint(); }
+  up(){ incSpeed(); sfx.click(); }
+  down(){ incLevel(); sfx.click(); }
+  left(){ S.sel = (S.sel + 4) % 5; lsSet("bg9999.sel", S.sel); sfx.move(); this.repaint(); }
+  right(){ S.sel = (S.sel + 1) % 5; lsSet("bg9999.sel", S.sel); sfx.move(); this.repaint(); }
+  rotate(){ startGame(S.sel); }
+  repaint(){
+    const pts = [];
+    shapeRows(DIGITS[S.sel + 1]).forEach(p => { for (let a = 0; a < 2; a++) for (let b = 0; b < 2; b++) pts.push(P(1 + p.y * 2 + a, p.x * 2 + b)); });
+    const g = canvasFrom(pts, applyShape(shapeRows(ICONS[S.sel]), P(13, 0)));
+    draw(g);
+    const pv = grid4(); drawPreview(pv);
+  }
+}
+
+// ---------------------------------------------------------------- Crash animation (Crash.java)
+const CRASH_STATES = [
+  shapeRows(["00000","00000","00100","00000","00000"]),
+  shapeRows(["00000","01110","01010","01110","00000"]),
+  shapeRows(["10101","00000","10001","00000","10101"])
+];
+function crash(point){
+  setLife(S.life - 1);
+  sfx.crash(); vibrate([40, 30, 60]);
+  const shot = S.board.map(r => r.slice());
+  const mask = [];
+  for (let h = 0; h < H; h++) for (let w = 0; w < W; w++)
+    if (shot[h][w] && !(Math.abs(h - point.y) <= 2 && Math.abs(w - point.x) <= 2)) mask.push(P(h, w));
+  S.locked = true; S.crashing = true;
+  kernel.killAll();
+  kernel.job("crash", 50, j => {
+    const st = applyShape(CRASH_STATES[j.countdown % 3], P(point.y - 2, point.x - 2));
+    draw(canvasFrom(mask, st), true);
+  }, 30, () => kernel.job("crash", 25, j => {
+    for (let w = 0; w < W; w++) shot[j.countdown][w] = true;
+    draw(shot.map(r => r.slice()), true);
+  }, 20, () => {
+    S.locked = false; S.crashing = false;
+    if (S.life <= 0) { sfx.over(); toMenu(); return; }
+    game.init();
+  }));
+}
+
+// ---------------------------------------------------------------- Snake (SnakeGame.java)
+const MAPS = [
+"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+"00000000000000000000000000000000000000000000000000000000000000001100000000110000000011000000001100000000110000000011000000001100000000110000000000000000000000000000000000000000000000000000000000000000",
+"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111111000011111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+"00000000000000000000000000000000000000000000000000000000000000110011000011001100001100110000110011000011001100001100110000110011000011001100000000000000000000000000000000000000000000000000000000000000",
+"00000000000000000000000000000000000000000000000000000000000000000000000011111100001111110000000000000000000000001111110000111111000000000000000000000000000000000000000000000000000000000000000000000000",
+"00000000000000000000000000000000000000000000000000000000000000001100000000110000000011000000111111000011111100000011000000001100000000110000000000000000000000000000000000000000000000000000000000000000",
+"0000000000000000000000000000000000000000000000000000000000000011111100001111110000001100000000110000000011000000001100000011111100001111110000000000000000000000000000000000000000000000000000",
+"00000000000000000000000000000000000000000000000000000000000000110011000011001100001100110000111111000011111100001100110000110011000011001100000000000000000000000000000000000000000000000000000000000000",
+"00000000000111001110010000001001000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000010010000001001110011100000000000",
+"00000000000111001110010000001001000000100000000000000000000000001100000000110000000011000000001100000000110000000011000000001100000000110000000000000000000000000100000010010000001001110011100000000000",
+"00000000000111001110010000001001000000100000000000000000000000000000000000000000000000000000111111000011111100000000000000000000000000000000000000000000000000000100000010010000001001110011100000000000",
+"00000000000111001110010000001001000000100000000000000000000000110011000011001100001100110000110011000011001100001100110000110011000011001100000000000000000000000100000010010000001001110011100000000000",
+"00000000000111001110010000001001000000100000000000000000000000000000000011111100001111110000000000000000000000001111110000111111000000000000000000000000000000000100000010010000001001110011100000000000",
+"00000000000111001110010000001001000000100000000000000000000000001100000000110000000011000000111111000011111100000011000000001100000000110000000000000000000000000100000010010000001001110011100000000000",
+"00000000000111001110010000001001000000100000000000000000000000111111000011111100000011000000001100000000110000000011000000111111000011111100000000000000000000000100000010010000001001110011100000000000",
+"00000000000111001110010000001001000000100000000000000000000000110011000011001100001100110000111111000011111100001100110000110011000011001100000000000000000000000100000010010000001001110011100000000000"
+].map(s => { s = s.padEnd(200, "0"); const pts = []; for (let i = 0; i < 200; i++) if (s[i] === "1") pts.push(P(Math.floor(i / 10), i % 10)); return pts; });
+const REVERSE = { L: "R", R: "L", U: "D", D: "U", N: "N" };
+const MOVE = { L: P(0, -1), R: P(0, 1), U: P(-1, 0), D: P(1, 0) };
+class SnakeGame {
+  constructor(){ setLife(3); setScore(0); }
+  init(){
+    this.map = MAPS[S.level];
+    this.snake = [P(0, 0), P(0, 1), P(0, 2)];
+    this.mouse = this.nextMouse();
+    this.dir = "N"; this.keyPressed = false;
+    kernel.job("game", 300 - S.speed * 15, () => this.onMove());
+    this.repaint();
+  }
+  nextMouse(){ let p; do { p = P(rnd(20), rnd(10)); } while (has(this.snake, p) || has(this.map, p)); return p; }
+  onMove(){
+    if (this.dir === "N") return;
+    if (this.keyPressed) { this.keyPressed = false; return; }
+    this.step(this.dir);
+  }
+  key(course){ if (this.step(course)) this.keyPressed = true; }
+  down(){ this.key("D"); }
+  right(){ this.key("R"); }
+  left(){ if (this.dir !== "N") this.key("L"); }
+  up(){ if (this.dir !== "N") this.key("U"); }
+  rotate(){ this.onMove(); }
+  step(course){
+    if (this.dir === REVERSE[course]) return false;
+    const turned = this.dir !== course; this.dir = course;
+    const head = cp(this.snake[this.snake.length - 1]); this.snake.push(head);
+    head.y += MOVE[course].y; head.x += MOVE[course].x;
+    if (head.x < 0 || head.x >= W || head.y < 0 || head.y >= H) { crash(head); return true; }
+    if (eq(head, this.mouse)) { this.mouse = this.nextMouse(); incScore(10); sfx.eat(); }
+    else { this.snake.shift(); if (turned) sfx.move(); }
+    for (let i = 0; i < this.snake.length - 1; i++) if (eq(this.snake[i], head)) { crash(this.snake[i]); return true; }
+    if (has(this.map, head)) { crash(head); return true; }
+    this.repaint();
+    this.verifyLevelUp();
+    return true;
+  }
+  verifyLevelUp(){
+    if (this.snake.length <= 33) return;
+    kernel.killAll();
+    if (incSpeed() === 0) incLevel();
+    sfx.level();
+    this.init();
+  }
+  repaint(){ draw(canvasFrom(this.map, this.snake, [this.mouse])); }
+}
+
+// ---------------------------------------------------------------- Race (RaceGame.java)
+const CAR = shapeHex(3, 0x2, 0x7, 0x2, 0x5);
+function carOn(at){ return applyShape(CAR, P(at.y - 1, at.x - 1)); }
+class RaceGame {
+  constructor(){ setScore(0); setLife(3); }
+  init(){
+    this.car = carOn(P(17, 3));
+    this.cars = [carOn(P(-3, Math.random() < 0.5 ? 3 : 6))];
+    this.road = []; for (let i = 0; i < 20; i++) if (i % 4 !== 0) { this.road.push(P(i, 0)); this.road.push(P(i, 9)); }
+    this.traffic = 0;
+    kernel.job("game", 300 - S.speed * 18, () => this.onMove());
+  }
+  onMove(){
+    this.cars.forEach(c => c.forEach(p => p.y++));
+    this.road.forEach(p => { p.y++; if (p.y >= H) p.y = 0; }); this.traffic++;
+    if (this.traffic % 9 === 0) { this.cars.push(carOn(P(-3, Math.random() < 0.5 ? 3 : 6))); if (this.cars.length > 3) this.cars.shift(); }
+    incScore(10);
+    this.repaint();
+    if (this.verifyCrash()) return;
+    this.verifyLevelUp();
+  }
+  verifyCrash(){
+    for (const c of this.cars) for (const p of c) if (has(this.car, p)) { crash(p); return true; }
+    return false;
+  }
+  down(){}
+  left(){ if (this.car[0].x < 4) return; this.car.forEach(p => p.x -= 3); sfx.move(); this.repaint(); this.verifyCrash(); }
+  right(){ if (this.car[0].x > 5) return; this.car.forEach(p => p.x += 3); sfx.move(); this.repaint(); this.verifyCrash(); }
+  up(){ this.onMove(); }
+  rotate(){ this.onMove(); }
+  verifyLevelUp(){ if (this.traffic < 1000) return; kernel.killAll(); incSpeed(); sfx.level(); this.init(); }
+  repaint(){ draw(canvasFrom(this.car, [].concat(...this.cars), this.road)); }
+}
+
+// ---------------------------------------------------------------- Tetris (TetrisGame.java)
+const TETROMINOES = [
+  [[0x0,0xF,0x0,0x0],[0x2,0x2,0x2,0x2],[0x0,0xF,0x0,0x0],[0x2,0x2,0x2,0x2]], // I
+  [[0x0,0x7,0x1,0x0],[0x3,0x2,0x2,0x0],[0x4,0x7,0x0,0x0],[0x2,0x2,0x6,0x0]], // J
+  [[0x0,0x7,0x4,0x0],[0x2,0x2,0x3,0x0],[0x1,0x7,0x0,0x0],[0x6,0x2,0x2,0x0]], // L
+  [[0x0,0x6,0x6,0x0],[0x0,0x6,0x6,0x0],[0x0,0x6,0x6,0x0],[0x0,0x6,0x6,0x0]], // O
+  [[0x0,0x3,0x6,0x0],[0x2,0x3,0x1,0x0],[0x0,0x3,0x6,0x0],[0x2,0x3,0x1,0x0]], // S
+  [[0x0,0x7,0x2,0x0],[0x2,0x3,0x2,0x0],[0x2,0x7,0x0,0x0],[0x2,0x6,0x2,0x0]], // T
+  [[0x0,0x6,0x3,0x0],[0x1,0x3,0x2,0x0],[0x0,0x6,0x3,0x0],[0x1,0x3,0x2,0x0]]  // Z
+].map(states => states.map(rows => shapeHex(4, ...rows)));
+function outOfWell(p){ return p.x < 0 || p.x >= W || p.y >= H; }
+class Tetromino {
+  constructor(states, state, src){
+    this.states = states; this.state = state;
+    if (src) { this.dot = cp(src.dot); this.pts = src.pts.map(cp); }
+    else { this.dot = P(-2, 3); this.pts = applyShape(states[state % 4], this.dot); }
+  }
+  static generate(){ return new Tetromino(TETROMINOES[rnd(7)], rnd(4)); }
+  clone(){ return new Tetromino(this.states, this.state, this); }
+  move(dy, dx){
+    if (this.pts.some(p => outOfWell(P(p.y + dy, p.x + dx)))) return;
+    this.dot.y += dy; this.dot.x += dx; this.pts.forEach(p => { p.y += dy; p.x += dx; });
+  }
+  doRotate(){
+    const next = this.state + 1; const d = cp(this.dot);
+    for (let guard = 0; guard < 10 && applyShape(this.states[next % 4], d).some(p => p.x < 0 || p.x >= W); guard++) d.x += d.x < 5 ? 1 : -1;
+    const fig = applyShape(this.states[next % 4], d);
+    if (fig.some(outOfWell)) return;
+    this.state++; this.dot = d; this.pts = fig;
+  }
+  inBottom(){ return this.pts.some(p => p.y === H - 1); }
+}
+class TetrisGame {
+  constructor(){ this.usesPreview = true; setScore(0); setLife(3); }
+  init(){
+    this.board = [];
+    for (let y = H - S.level; y < H; y++) for (let x = 0; x < W; x++) if (Math.random() < 0.5) this.board.push(P(y, x));
+    this.cur = Tetromino.generate(); this.next = Tetromino.generate();
+    this.repaintNext(); this.repaint();
+    kernel.job("game", 700 - S.speed * 40, () => this.down(true));
+  }
+  fits(t){ return !t.pts.some(p => has(this.board, p)); }
+  down(auto){
+    if (this.board.some(p => p.y < 0)) { crash(P(-5, -5)); return; }
+    const t = this.cur.clone(); t.move(1, 0);
+    if (this.cur.inBottom() || !this.fits(t)) { this.add(); return; }
+    this.cur = t; this.repaint();
+  }
+  add(){
+    this.board.push(...this.cur.pts);
+    let lines = 0;
+    for (let i = 0; i < H; i++) {
+      if (this.board.filter(p => p.y === i).length === W) {
+        this.board = this.board.filter(p => p.y !== i);
+        this.board.forEach(p => { if (p.y < i) p.y++; });
+        lines++;
+      }
+    }
+    if (lines) { incScore(lines * 100); sfx.clear(); vibrate(25); } else sfx.move();
+    this.cur = this.next; this.next = Tetromino.generate();
+    this.repaintNext(); this.repaint();
+  }
+  stepWith(fn, snd){ const t = this.cur.clone(); fn(t); if (!this.fits(t)) return; const moved = !eq(t.dot, this.cur.dot) || t.state !== this.cur.state; this.cur = t; if (moved) snd(); this.repaint(); }
+  left(){ this.stepWith(t => t.move(0, -1), sfx.move); }
+  right(){ this.stepWith(t => t.move(0, 1), sfx.move); }
+  up(){ this.rotate(); }
+  rotate(){ this.stepWith(t => t.doRotate(), sfx.rotate); }
+  repaint(){ draw(canvasFrom(this.cur.pts, this.board)); }
+  repaintNext(){ const g = grid4(); this.next.pts.forEach(p => { const y = p.y + 2, x = p.x - 3; if (y >= 0 && y < 4 && x >= 0 && x < 4) g[y][x] = true; }); drawPreview(g); }
+}
+
+// ---------------------------------------------------------------- Shoot (ShootGame.java)
+class ShootGame {
+  constructor(){ setLife(3); setScore(0); }
+  init(){
+    this.army = []; this.gun = P(19, 4); this.shoots = [];
+    kernel.job("game", 1000 - S.speed * 40, () => this.doAttack());
+    kernel.job("shoots", 25, () => this.doShoot());
+    this.repaint();
+  }
+  doShoot(){
+    this.shoots.forEach(p => p.y--);
+    const before = this.army.length;
+    const hits = this.shoots.filter(s => has(this.army, s));
+    if (hits.length) {
+      this.army = this.army.filter(a => !has(hits, a));
+      this.shoots = this.shoots.filter(s => !has(hits, s));
+    }
+    this.shoots = this.shoots.filter(s => s.y >= -1);
+    if (this.army.length < before) { incScore(10); sfx.hit(); }
+    this.repaint();
+  }
+  down(){}
+  left(){ if (this.gun.x < 1) return; this.gun.x--; sfx.move(); this.repaint(); }
+  right(){ if (this.gun.x > 8) return; this.gun.x++; sfx.move(); this.repaint(); }
+  up(){ this.rotate(); }
+  rotate(){ this.shoots.push(cp(this.gun)); sfx.shoot(); this.repaint(); }
+  doAttack(){
+    this.army.forEach(p => p.y++);
+    for (let i = 0; i < W; i++) if (Math.random() < 0.5) this.army.push(P(0, i));
+    this.repaint();
+    if (this.army.some(p => p.y > H - 1)) crash(this.gun);
+  }
+  repaint(){ draw(canvasFrom([this.gun], this.shoots, this.army)); }
+}
+
+// ---------------------------------------------------------------- Tanks (TanksGame.java)
+const TANK_STATES = [shapeHex(3, 0x2, 0x7, 0x5), shapeHex(3, 0x6, 0x3, 0x6), shapeHex(3, 0x5, 0x7, 0x2), shapeHex(3, 0x3, 0x6, 0x3)];
+const TDIR = [P(-1, 0), P(0, 1), P(1, 0), P(0, -1)]; // UP RIGHT DOWN LEFT
+const SPAWN_POINTS = [P(0, 0), P(0, 7), P(17, 0), P(17, 7)];
+let tankSeq = 0;
+class Tank {
+  constructor(point, dir, id){ this.id = id === undefined ? ++tankSeq : id; this.point = cp(point); this.dir = dir; this.pts = applyShape(TANK_STATES[dir], this.point); }
+  clone(){ return new Tank(this.point, this.dir, this.id); }
+  step(dr){
+    if (dr === this.dir) { const d = TDIR[dr]; this.pts.forEach(p => { p.y += d.y; p.x += d.x; }); this.point.y += d.y; this.point.x += d.x; return; }
+    this.pts = applyShape(TANK_STATES[dr], this.point); this.dir = dr;
+  }
+  outside(){ return this.point.x < 0 || this.point.x > 7 || this.point.y < 0 || this.point.y > 17; }
+  shot(){
+    const s = (lo, hi) => this.dir === lo ? -1 : this.dir === hi ? 1 : 0;
+    return { p: P(this.point.y + 1 + s(0, 2), this.point.x + 1 + s(3, 1)), dir: this.dir };
+  }
+  hit(shot){ return has(this.pts, shot.p); }
+}
+class TanksGame {
+  constructor(){ setLife(3); setScore(0); } // 3 lives (the Java version had none)
+  init(){
+    this.tanks = []; this.myShots = []; this.shots = [];
+    this.my = new Tank(P(9, 4), rnd(4));
+    SPAWN_POINTS.forEach(p => this.tanks.push(new Tank(p, rnd(4))));
+    this.tanks.push(this.my);
+    kernel.job("game", 1000 - S.speed * 45, () => this.tanksMove());
+    kernel.job("shots", 150, () => this.bulletFlight());
+    this.repaint();
+  }
+  overlap(t){ return this.tanks.some(o => o.id !== t.id && o.pts.some(p => has(t.pts, p))); }
+  canStep(tank, dr){
+    const c = tank.clone(); c.step(dr);
+    if (c.outside()) return 0;
+    if (!this.overlap(c)) return 1;
+    if (tank.dir !== (dr + 2) % 4) return 0;
+    c.step(dr);
+    if (c.outside() || this.overlap(c)) return 0;
+    return 2;
+  }
+  doStep(tank, dr){ const n = this.canStep(tank, dr); for (let i = 0; i < n; i++) tank.step(dr); return n > 0; }
+  spawn(){
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const t = new Tank(SPAWN_POINTS[rnd(4)], rnd(4));
+      const blocked = this.tanks.some(o => { for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) if (has(t.pts, P(o.point.y + y, o.point.x + x))) return true; return false; });
+      if (!blocked) { this.tanks.push(t); return; }
+    }
+  }
+  key(dr){ if (this.doStep(this.my, dr)) { sfx.move(); this.repaint(); } }
+  up(){ this.key(0); } right(){ this.key(1); } down(){ this.key(2); } left(){ this.key(3); }
+  rotate(){ this.myShots.push(this.my.shot()); sfx.shoot(); this.repaint(); }
+  tanksMove(){
+    this.tanks.filter(t => t !== this.my).forEach(t => {
+      for (let i = 0; i < 5; i++) {
+        const r = rnd(4); let ok;
+        if (r === 0) ok = this.doStep(t, rnd(4));
+        else if (r < 3) ok = this.doStep(t, t.dir);
+        else { this.shots.push(t.shot()); ok = true; }
+        if (ok) break;
+      }
+    });
+    if (this.tanks.length < 5) this.spawn();
+    this.repaint();
+  }
+  bulletFlight(){
+    const all = this.myShots.concat(this.shots);
+    all.forEach(s => { s.p.y += TDIR[s.dir].y; s.p.x += TDIR[s.dir].x; });
+    const killed = []; const usedShots = [];
+    this.tanks.forEach(t => { if (t === this.my) return; const s = this.myShots.find(s => t.hit(s)); if (s) { killed.push(t); usedShots.push(s); } });
+    this.tanks = this.tanks.filter(t => killed.indexOf(t) < 0);
+    this.myShots = this.myShots.filter(s => usedShots.indexOf(s) < 0);
+    this.repaint();
+    if (killed.length) { incScore(killed.length * 100); sfx.hit(); }
+    const deadly = this.shots.find(s => this.my.hit(s));
+    if (deadly) { crash(deadly.p); return; }
+    const inside = s => !(s.p.x < 0 || s.p.x > 9 || s.p.y < 0 || s.p.y > 19);
+    this.myShots = this.myShots.filter(inside); this.shots = this.shots.filter(inside);
+  }
+  repaint(){ draw(canvasFrom(this.myShots.concat(this.shots).map(s => s.p), [].concat(...this.tanks.map(t => t.pts)))); }
+}
+
+// ---------------------------------------------------------------- controller
+const GAMES = [SnakeGame, RaceGame, TetrisGame, ShootGame, TanksGame];
+const menu = new Menu();
+let game = menu;
+function resetState(){ kernel.killAll(); S.pause = false; S.locked = false; S.crashing = false; stopAllRepeats(); }
+function toMenu(){ resetState(); S.mode = "menu"; game = menu; menu.init(); dirty = true; }
+function startGame(i){
+  resetState();
+  S.sel = i; lsSet("bg9999.sel", i);
+  S.mode = "game"; game = null;
+  game = new GAMES[i]();
+  game.init(); sfx.start(); dirty = true;
+}
+function togglePause(){
+  if (S.mode !== "game") return;
+  S.pause = !S.pause; if (!S.pause) kernel.resync(); else stopAllRepeats();
+  sfx.click(); dirty = true;
+}
+function toggleSound(){ S.sound = !S.sound; lsSet("bg9999.sound", S.sound ? "1" : "0"); if (S.sound) { unlockAudio(); sfx.click(); } dirty = true; }
+function reset(){ toMenu(); setLife(0); menu.repaint(); sfx.click(); }
+function action(a){
+  switch (a) {
+    case "sound": toggleSound(); return;
+    case "reset": reset(); return;
+    case "pause": togglePause(); return;
+    case "start": if (S.mode === "menu") startGame(S.sel); else togglePause(); return;
+  }
+  if (/^g[1-5]$/.test(a)) { startGame(+a[1] - 1); return; }
+  if (S.pause || S.locked) return;
+  if (a === "rotate" && S.mode === "menu") { startGame(S.sel); return; }
+  if (game && typeof game[a] === "function") game[a]();
+}
+function vibrate(p){ try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+// ---------------------------------------------------------------- input: auto-repeat
+const REPEATABLE = { up: 1, down: 1, left: 1, right: 1, rotate: 1 };
+const repeats = {};
+function repeatDelay(a){
+  if (a === "rotate") return (S.mode === "game" && (S.sel === 3 || S.sel === 4)) ? 220 : 0;
+  if (S.mode === "menu") return 260;
+  return 170;
+}
+function repeatRate(a){
+  if (a === "rotate") return S.sel === 3 ? 110 : 220;
+  if (S.mode === "menu") return 160;
+  if (S.sel === 2) return a === "down" ? 45 : 75;
+  if (S.sel === 1 || S.sel === 0) return 90;
+  return 100;
+}
+function pressStart(a, src){
+  unlockAudio(); vibrate(12);
+  setBtnOn(a, true);
+  action(a);
+  if (REPEATABLE[a]) {
+    stopRepeat(a);
+    const d = repeatDelay(a); if (!d) return;
+    const r = repeats[a] = { src: src, t: setTimeout(function tick(){ if (repeats[a] !== r) return; action(a); r.t = setTimeout(tick, repeatRate(a)); }, d) };
+  }
+}
+function pressEnd(a){ setBtnOn(a, false); stopRepeat(a); }
+function stopRepeat(a){ const r = repeats[a]; if (r) { clearTimeout(r.t); delete repeats[a]; } }
+function stopAllRepeats(){ Object.keys(repeats).forEach(stopRepeat); }
+const BTN_EL = {}; document.querySelectorAll("[data-btn]").forEach(el => BTN_EL[el.dataset.btn] = el);
+function setBtnOn(a, on){ const el = BTN_EL[a === "pause" ? "start" : a]; if (el) el.classList.toggle("on", on); }
+
+// pointer events (no 300ms delay; each button tracks its own pointer for multi-touch)
+document.querySelectorAll("[data-btn]").forEach(el => {
+  const a = el.dataset.btn; let pid = null;
+  el.addEventListener("pointerdown", e => {
+    e.preventDefault(); if (pid !== null) return; pid = e.pointerId;
+    try { el.setPointerCapture(e.pointerId); } catch (err) {}
+    pressStart(a, "ptr");
+  });
+  const up = e => { if (e.pointerId !== pid) return; pid = null; pressEnd(a); };
+  el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up); el.addEventListener("lostpointercapture", up);
+  el.addEventListener("contextmenu", e => e.preventDefault());
+});
+// block scroll bounce, pinch and double-tap zoom on iOS
+["touchstart", "touchmove", "touchend"].forEach(t => document.addEventListener(t, e => { if (t === "touchend") unlockAudio(); if (e.cancelable) e.preventDefault(); }, { passive: false }));
+["gesturestart", "gesturechange", "dblclick"].forEach(t => document.addEventListener(t, e => e.preventDefault()));
+document.addEventListener("pointerdown", unlockAudio);
+
+const KEYMAP = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", " ": "rotate", Spacebar: "rotate", Enter: "start",
+  p: "pause", P: "pause", s: "sound", S: "sound", r: "reset", R: "reset", "1": "g1", "2": "g2", "3": "g3", "4": "g4", "5": "g5" };
+document.addEventListener("keydown", e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const a = KEYMAP[e.key]; if (!a) return;
+  e.preventDefault();
+  if (e.repeat) return; // own auto-repeat
+  pressStart(a, "key");
+});
+document.addEventListener("keyup", e => { const a = KEYMAP[e.key]; if (a) pressEnd(a); });
+window.addEventListener("blur", () => { stopAllRepeats(); document.querySelectorAll(".on").forEach(el => el.classList.remove("on")); });
+document.addEventListener("visibilitychange", () => { if (document.hidden && S.mode === "game" && !S.pause && !S.crashing) togglePause(); });
+
+// ---------------------------------------------------------------- rendering
+const cv = document.getElementById("lcd"), ctx = cv.getContext("2d");
+const LCD_BG = "#9eab84", ON = "#141a0e", OFF = "rgba(20,26,14,0.10)";
+let C = 18, dpr = 1;
+const COLS = 17.4, ROWS = 22.2;
+function layout(){
+  const con = document.getElementById("console");
+  const cs = getComputedStyle(con);
+  const innerW = con.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const innerH = con.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const ctlH = Math.round(Math.max(190, Math.min(innerW * 0.66, innerH * 0.36, 320)));
+  con.style.setProperty("--ctl-h", ctlH + "px");
+  con.style.setProperty("--dpad", Math.round(Math.min(ctlH * 0.92, innerW * 0.54)) + "px");
+  con.style.setProperty("--rot", Math.round(Math.min(ctlH * 0.55, innerW * 0.34)) + "px");
+  const wrap = document.getElementById("screenWrap");
+  const availW = innerW - 24, availH = wrap.clientHeight - 24 - 18;
+  C = Math.max(8, Math.floor(Math.min(availW / COLS, availH / ROWS)));
+  dpr = Math.min(3, window.devicePixelRatio || 1);
+  cv.style.width = Math.round(C * COLS) + "px"; cv.style.height = Math.round(C * ROWS) + "px";
+  cv.width = Math.round(C * COLS * dpr); cv.height = Math.round(C * ROWS * dpr);
+  dirty = true;
+}
+function brick(x, y, s, on){
+  ctx.fillStyle = on ? ON : OFF; ctx.strokeStyle = on ? ON : OFF;
+  const lw = Math.max(1, s * 0.11), o = s * 0.08 + lw / 2;
+  ctx.lineWidth = lw; ctx.strokeRect(x + o, y + o, s - 2 * o, s - 2 * o);
+  const i = s * 0.3; ctx.fillRect(x + i, y + i, s - 2 * i, s - 2 * i);
+}
+// seven segment digits (with faint "8" ghost)
+const SEG = { 0: "abcdef", 1: "bc", 2: "abged", 3: "abgcd", 4: "fgbc", 5: "afgcd", 6: "afgedc", 7: "abc", 8: "abcdefg", 9: "abcdfg" };
+function seg7(x, y, w, h, d){
+  const t = Math.max(1.5, w * 0.17), g = t * 0.25;
+  const segs = { a: [x + t / 2 + g, y, w - t - 2 * g, t, 1], g: [x + t / 2 + g, y + h / 2 - t / 2, w - t - 2 * g, t, 1], d: [x + t / 2 + g, y + h - t, w - t - 2 * g, t, 1],
+    f: [x, y + t / 2 + g, t, h / 2 - t / 2 - 2 * g, 0], b: [x + w - t, y + t / 2 + g, t, h / 2 - t / 2 - 2 * g, 0],
+    e: [x, y + h / 2 + g, t, h / 2 - t / 2 - 2 * g, 0], c: [x + w - t, y + h / 2 + g, t, h / 2 - t / 2 - 2 * g, 0] };
+  for (const k in segs) {
+    const [sx, sy, sw, sh, horiz] = segs[k]; const on = d !== null && SEG[d].indexOf(k) >= 0;
+    ctx.fillStyle = on ? ON : OFF; ctx.beginPath();
+    if (horiz) { ctx.moveTo(sx, sy + sh / 2); ctx.lineTo(sx + sh / 2, sy); ctx.lineTo(sx + sw - sh / 2, sy); ctx.lineTo(sx + sw, sy + sh / 2); ctx.lineTo(sx + sw - sh / 2, sy + sh); ctx.lineTo(sx + sh / 2, sy + sh); }
+    else { ctx.moveTo(sx + sw / 2, sy); ctx.lineTo(sx + sw, sy + sw / 2); ctx.lineTo(sx + sw, sy + sh - sw / 2); ctx.lineTo(sx + sw / 2, sy + sh); ctx.lineTo(sx, sy + sh - sw / 2); ctx.lineTo(sx, sy + sw / 2); }
+    ctx.closePath(); ctx.fill();
+  }
+}
+function number(x, y, digits, value, dw, dh, leadingZeros){
+  const s = String(value).padStart(digits, "0");
+  for (let i = 0; i < digits; i++) {
+    const lead = !leadingZeros && i < digits - String(value).length;
+    seg7(x + i * dw * 1.32, y, dw, dh, lead ? null : +s[i]);
+  }
+}
+function label(text, x, y, size, align){ ctx.fillStyle = ON; ctx.font = "800 " + size + "px -apple-system,Helvetica,Arial,sans-serif"; ctx.textAlign = align || "left"; ctx.textBaseline = "top"; ctx.fillText(text, x, y); }
+const CUP = ["0000101000","0001010000","0000101000","0111111110","0100000101","0100000101","0100000110","0010001000","0001110000","1111111110"];
+const SPK = ["0000110000","0001110010","1111110001","1111110101","1111110101","1111110001","0001110010","0000110000"];
+function pixIcon(rows, x, y, px, on, partOn){
+  for (let r = 0; r < rows.length; r++) for (let c = 0; c < rows[r].length; c++) if (rows[r][c] === "1") {
+    const lit = partOn ? partOn(r, c) : on; ctx.fillStyle = lit ? ON : OFF; ctx.fillRect(x + c * px, y + r * px, px * 0.9, px * 0.9);
+  }
+}
+function render(now){
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const c = C;
+  ctx.fillStyle = LCD_BG; ctx.fillRect(0, 0, c * COLS, c * ROWS);
+  const g = ctx.createLinearGradient(0, 0, c * COLS, c * ROWS); g.addColorStop(0, "rgba(255,255,255,0.10)"); g.addColorStop(1, "rgba(0,0,0,0.06)"); ctx.fillStyle = g; ctx.fillRect(0, 0, c * COLS, c * ROWS);
+  // board
+  const bx = c * 0.5, by = c * 0.5;
+  ctx.strokeStyle = ON; ctx.lineWidth = Math.max(1, c * 0.07); ctx.strokeRect(bx - c * 0.18, by - c * 0.18, c * 10 + c * 0.36, c * 20 + c * 0.36);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) brick(bx + x * c, by + y * c, c, S.board[y][x]);
+  // game name strip
+  const name = (S.sel + 1) + " " + GAME_NAMES[S.sel];
+  label(S.mode === "menu" ? "\u25C0 " + name + " \u25B6" : name, bx + c * 5, by + c * 20.45, c * 0.78, "center");
+  // side panel
+  const sx = c * 11.35, sw = c * 5.6, dw = c * 0.66, dh = c * 1.15;
+  const numW = dw * 1.32 * 5 + dw;
+  const nx = sx + (sw - numW) / 2;
+  label("SCORE", sx + sw, c * 0.4, c * 0.62, "right");
+  number(nx, c * 1.15, 6, S.score, dw, dh, true);
+  label("HI-SCORE", sx + sw, c * 2.65, c * 0.62, "right");
+  number(nx, c * 3.4, 6, S.hi[S.sel], dw, dh, true);
+  // preview 4x4
+  const pc = c * 0.92, px0 = sx + (sw - pc * 4) / 2, py0 = c * 5.2;
+  for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) brick(px0 + x * pc, py0 + y * pc, pc, S.preview[y][x]);
+  // lives row
+  label("LIVES", sx, c * 9.25, c * 0.62);
+  for (let i = 0; i < 3; i++) brick(sx + c * 2.6 + i * c * 0.95, c * 9.05, c * 0.9, i < S.life);
+  // speed & level
+  const dw2 = c * 0.72, dh2 = c * 1.25;
+  label("SPEED", sx + c * 1.35, c * 10.6, c * 0.6, "center");
+  number(sx + c * 0.4, c * 11.35, 2, S.speed, dw2, dh2, false);
+  label("LEVEL", sx + c * 4.25, c * 10.6, c * 0.6, "center");
+  number(sx + c * 3.3, c * 11.35, 2, S.level, dw2, dh2, false);
+  // pause and sound icons
+  const blink = Math.floor(now / 400) % 2 === 0;
+  const ipx = c * 0.17;
+  pixIcon(CUP, sx + c * 0.25, c * 13.6, ipx, S.pause && blink);
+  label("PAUSE", sx + c * 1.1, c * 15.5, c * 0.5, "center");
+  pixIcon(SPK, sx + c * 3.4, c * 13.85, ipx, S.sound, S.sound ? null : (r, col) => col < 6);
+  label(S.sound ? "SOUND" : "MUTE", sx + c * 4.25, c * 15.5, c * 0.5, "center");
+  // mode hint
+  if (S.mode === "menu") {
+    const b2 = Math.floor(now / 600) % 2 === 0;
+    label("\u25B2 SPEED", sx + sw / 2, c * 17.0, c * 0.55, "center");
+    label("\u25BC LEVEL", sx + sw / 2, c * 17.9, c * 0.55, "center");
+    if (b2) label("PRESS START", sx + sw / 2, c * 19.2, c * 0.55, "center");
+  } else if (S.pause) {
+    if (blink) label("PAUSED", sx + sw / 2, c * 17.6, c * 0.75, "center");
+  } else if (S.crashing && S.life <= 0) {
+    if (blink) { label("GAME", sx + sw / 2, c * 17.2, c * 0.75, "center"); label("OVER", sx + sw / 2, c * 18.2, c * 0.75, "center"); }
+  }
+  dirty = false;
+}
+let lastBlink = -1;
+function frame(now){
+  kernel.tick(now);
+  const b = Math.floor(now / 200);
+  if (dirty || b !== lastBlink) { lastBlink = b; render(now); }
+  requestAnimationFrame(frame);
+}
+window.addEventListener("resize", layout);
+window.addEventListener("orientationchange", () => setTimeout(layout, 200));
+layout();
+toMenu();
+setLife(0);
+menu.repaint();
+requestAnimationFrame(frame);
+
+// small read-only hook used by automated play-tests
+window.BrickGame = { state: () => ({ mode: S.mode, sel: S.sel, score: S.score, life: S.life, speed: S.speed, level: S.level, pause: S.pause, locked: S.locked, crashing: S.crashing, jobs: Array.from(kernel.jobs.keys()), board: S.board.map(r => r.map(v => v ? 1 : 0).join("")) }), game: () => game };
+})();
+</script>
+</body>
+</html>
